@@ -39,9 +39,14 @@ class SOUNDVISUALIZER_API UFmodAudioManager : public UObject
     int32 InitLogSpectrum(const int32 numBars);
 
     UFUNCTION(BlueprintCallable, Category = TOOT)
+    void InitBeatDetector( );
+
+    UFUNCTION(BlueprintCallable, Category = TOOT)
     void FecthLinerSpectrum(TArray<float>& freqValues , const int32 bars);
     UFUNCTION(BlueprintCallable, Category = TOOT)
     void FecthLogSpectrum(TArray<float>& freqValues , const int32 bars);
+    UFUNCTION(BlueprintCallable, Category = TOOT)
+    void FecthBeat(TArray<float>& freqValues , TArray<float>& freqAverageValues , bool& isBoss , bool& isLowM);
 
     UFUNCTION(BlueprintCallable, Category = TOOT)
     void UpdFmodSystem();

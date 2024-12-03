@@ -38,7 +38,7 @@ namespace FMOD {
     class DSP;
 }
 
-
+typedef std::vector<std::vector<float> > FFTHistoryContainer;
 
 class SoundManagerFmod
 {
@@ -59,6 +59,9 @@ public:
     void fetchLinerSpectrum(float* data);
     void fetchLogSpectrum(float* data);
     void updFFTData();
+    //
+    void initializeBeatDetector();
+    void getBeat(float* spectrum, float* averageSpecturm , bool& isBass , bool& isLowM);
 
 
 
@@ -70,9 +73,21 @@ private:
 
 
     int winRectSz;
+    float mSampleingFreq;
 
     std::vector<int> mBarsLinerAlgorithm;
     std::vector<int> mBarsLogAlgorithm;
+
+
+
+
+    int mFFTHistoryMaxSize;
+    std::vector<int> mBeatDetector_bandLimits;
+    FFTHistoryContainer mFFTHistory_linear;
+    FFTHistoryContainer mFFTHistory_log;
+    FFTHistoryContainer mFFTHistory_beatDetector;
+
+
 };
 
 #endif // SOUNDMANAGERFMOD_H

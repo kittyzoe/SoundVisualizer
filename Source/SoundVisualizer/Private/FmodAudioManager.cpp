@@ -46,6 +46,11 @@ int32 UFmodAudioManager::InitLogSpectrum(const int32 numBars)
     return mSoundManager->initializeLogSpectrum(numBars);
 }
 
+void UFmodAudioManager::InitBeatDetector()
+{
+    mSoundManager->initializeBeatDetector();
+}
+
 void UFmodAudioManager::FecthLinerSpectrum(TArray<float> &freqValues, const int32 bars)
 {
     freqValues.Init(0.0, bars);
@@ -56,6 +61,13 @@ void UFmodAudioManager::FecthLogSpectrum(TArray<float> &freqValues, const int32 
 {
     freqValues.Init(0.0 , bars);
     mSoundManager->fetchLogSpectrum(freqValues.GetData());
+}
+
+void UFmodAudioManager::FecthBeat(TArray<float> &freqValues, TArray<float> &freqAverageValues, bool &isBoss, bool &isLowM)
+{
+    freqValues.Init( 0.0 , 2);
+    freqAverageValues.Init(0.0  , 2);
+    mSoundManager->getBeat(freqValues.GetData(), freqAverageValues.GetData(), isBoss , isLowM);
 }
 
 void UFmodAudioManager::UpdFmodSystem()

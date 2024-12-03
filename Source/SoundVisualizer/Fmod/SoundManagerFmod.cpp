@@ -35,7 +35,9 @@ SoundManagerFmod::SoundManagerFmod()
       mChannel(nullptr),
       mSound(nullptr),
       mDsp(nullptr),
-      winRectSz(1024)
+      winRectSz(1024),
+      mSampleingFreq(0),
+      mFFTHistoryMaxSize(0)
 {
 
 }
@@ -94,6 +96,10 @@ int SoundManagerFmod::loadSndFromMemory(char *memPtr, unsigned int memSz)
 void SoundManagerFmod::playSnd()
 {
     mSystem->playSound(mSound , 0 , false, &mChannel );
+
+    mChannel->getFrequency(&mSampleingFreq);
+    mFFTHistoryMaxSize = mSampleingFreq / winRectSz;
+
     mChannel->addDSP(0, mDsp);
     mDsp->setActive(true);
 
@@ -243,6 +249,118 @@ void SoundManagerFmod::updFFTData()
 {
     // UE_LOG(LogTemp, Warning, TEXT("Nextloop here.........."));
     mSystem->update();
+}
+
+void SoundManagerFmod::initializeBeatDetector()
+{
+    int bandSz = mSampleingFreq / winRectSz;
+
+    mBeatDetector_bandLimits.clear();
+    mBeatDetector_bandLimits.reserve(4);  // bass + lowMidRang * 2 // call reserve first just for perfermence
+
+    // BASS : 60Hz ~ 130Hz (kick drum)
+    mBeatDetector_bandLimits.push_back(60 / bandSz);
+    mBeatDetector_bandLimits.push_back(130 / bandSz);
+    //
+    // Low Midrange 301Hz ~ 750 Hz (snare Drum)
+    mBeatDetector_bandLimits.push_back(301 / bandSz);
+    mBeatDetector_bandLimits.push_back(750 / bandSz);
+
+
+    mFFTHistory_beatDetector.clear();
+
+}
+
+static void fillAverageSpectrum(float* averageSpectrum , int numBands , const FFTHistoryContainer& fftHistory)
+{
+    for (FFTHistoryContainer::const_iterator it    =  fftHistory.cbegin() ; it !=   fftHistory.cend() ; ++it) {
+        const std::vector<float>& tmpVal = *it;
+
+        for (int i = 0; i < tmpVal.size(); ++i) {
+            averageSpectrum[i] += tmpVal[i];
+
+        }
+
+
+        for (int i = 0; i < numBands; ++i) {
+            averageSpectrum[i] /= fftHistory.size();
+        }
+    }
+}
+
+static void fillVarianceSpectrum(float* varianceSpectrum , int numBands, const FFTHistoryContainer& fftHistory, const float* averageSpectrum)
+{
+    for (FFTHistoryContainer::const_iterator it = fftHistory.cbegin(); it !=  fftHistory.cend() ; ++it) {
+
+        const std::vector<float>& rsl = *it;
+
+        for (int i = 0; i < rsl.size() ; ++i) {
+            varianceSpectrum[i] += (rsl[i] - averageSpectrum[i] ) * (rsl[i] - averageSpectrum[i]);
+        }
+    }
+
+    for (int i = 0; i < numBands; ++i) {
+        varianceSpectrum[i] /= fftHistory.size();
+    }
+}
+
+static float beatThreshold(float variance){
+    return -15 * variance + 1.55;
+}
+
+
+void SoundManagerFmod::getBeat(float *spectrum, float *averageSpecturm, bool &isBass, bool &isLowM)
+{
+    FMOD_DSP_PARAMETER_FFT *dspFFT = nullptr;
+
+    FMOD_RESULT rsl = mDsp->getParameterData(FMOD_DSP_FFT_SPECTRUMDATA , (void **) &dspFFT , 0,0,0);
+
+    if(dspFFT)
+    {
+        int len = dspFFT->length  / 2;
+        int chs  = dspFFT->numchannels;
+
+        if( len > 0){
+            int bands = mBeatDetector_bandLimits.size() / 2;
+
+            for (int nb = 0; nb < bands; ++nb) {
+                int bandBoundIdx = nb * 2;
+                for (int idxFFT = mBeatDetector_bandLimits[bandBoundIdx]; idxFFT < mBeatDetector_bandLimits[bandBoundIdx + 1]; ++idxFFT) {
+                    for (int c  = 0; c  < chs; ++c ) {
+                        spectrum[nb] += dspFFT->spectrum[c][idxFFT];
+                    }
+                }
+                spectrum[nb] /= (mBeatDetector_bandLimits[bandBoundIdx + 1]- mBeatDetector_bandLimits[bandBoundIdx]) * chs;
+
+            }
+
+            if (mFFTHistory_beatDetector.size() > 0) {
+                 fillAverageSpectrum(averageSpecturm , bands , mFFTHistory_beatDetector);
+
+                 std::vector<float> varianceSpectrum;
+                 varianceSpectrum.resize(bands);
+
+                 fillVarianceSpectrum(varianceSpectrum.data() , bands , mFFTHistory_beatDetector , averageSpecturm);
+                 isBass = (spectrum[0] - .05 ) >beatThreshold(varianceSpectrum[0]) * averageSpecturm[0];
+                 isLowM = (spectrum[1] - .005 ) >beatThreshold(varianceSpectrum[1]) * averageSpecturm[1];
+
+            }
+
+            std::vector<float> fftRsl;
+            fftRsl.reserve(bands);
+            for (int i = 0; i < bands; ++i) {
+                fftRsl.push_back(spectrum[i]);
+            }
+
+            if(mFFTHistory_beatDetector.size() >= mFFTHistoryMaxSize){
+                mFFTHistory_beatDetector.pop_back();
+            }
+
+            mFFTHistory_beatDetector.push_back(fftRsl);
+        }
+
+    }
+
 }
 
 
