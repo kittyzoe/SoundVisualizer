@@ -41,6 +41,8 @@ DISTFILES += \
 HEADERS += \
     SoundVisualizer/Fmod/SoundManagerFmod.h \
     SoundVisualizer/Public/FmodAudioManager.h \
+    SoundVisualizer/Public/ScanOneFolder.h \
+    SoundVisualizer/Public/TootBPFuncsLib.h \
     SoundVisualizer/Public/TootGameInstance.h \
     SoundVisualizer/Public/TootGameMode.h \
     SoundVisualizer/SoundVisualizer.h
@@ -48,6 +50,8 @@ HEADERS += \
 SOURCES += \
     SoundVisualizer/Fmod/SoundManagerFmod.cpp \
     SoundVisualizer/Private/FmodAudioManager.cpp \
+    SoundVisualizer/Private/ScanOneFolder.cpp \
+    SoundVisualizer/Private/TootBPFuncsLib.cpp \
     SoundVisualizer/Private/TootGameInstance.cpp \
     SoundVisualizer/Private/TootGameMode.cpp \
     SoundVisualizer/SoundVisualizer.cpp
