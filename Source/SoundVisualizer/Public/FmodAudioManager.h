@@ -11,14 +11,16 @@
 
 #include "SoundVisualizer/Fmod/soundmanagerfmod.h"
 
-
-
 #include "FmodAudioManager.generated.h"
 
 
 /**
  *
  */
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSongPlayFinished, const FString& , SongName);
+
 UCLASS(Blueprintable, BlueprintType)
 class SOUNDVISUALIZER_API UFmodAudioManager : public UObject
 {
@@ -53,13 +55,24 @@ class SOUNDVISUALIZER_API UFmodAudioManager : public UObject
 
 
     UFUNCTION(BlueprintCallable, Category = TOOT)
-    int32 playSong();
+    int32 playSong(const FString &Pathname);
 
     UFUNCTION(BlueprintCallable, Category = TOOT)
     void PauseSong(bool isPause);
 
+
+    //
+    UFUNCTION(BlueprintImplementableEvent, Category = "TOOT")
+    void SongPlayEnd(const FString& SongName);
+    //
+
     UFUNCTION(BlueprintPure, Category = TOOT)
     const FString &GetSongName() const;
+
+   // UPROPERTY(BlueprintAssignable, Category="TOOT")  //!!WRONG* property CAN'T be static
+    static FSongPlayFinished TootSongPlayEndDelegate;
+
+    static void SongPlayEndEvt(const FString& SongName);
 
 
 

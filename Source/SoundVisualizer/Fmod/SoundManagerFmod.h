@@ -66,6 +66,11 @@ public:
 
 
 private:
+
+   // static FMOD_R
+
+
+private:
     FMOD::System* mSystem;
     FMOD::Channel* mChannel;
     FMOD::Sound* mSound;

@@ -24,6 +24,8 @@
 
 #include "SoundManagerFmod.h"
 
+#include "SoundVisualizer/Public/FmodAudioManager.h"
+
 #include <fmod.hpp>
 
 #include <string>
@@ -93,9 +95,31 @@ int SoundManagerFmod::loadSndFromMemory(char *memPtr, unsigned int memSz)
     return rsl;
 }
 
+
+static FMOD_RESULT F_CALLBACK PlayingChannelCallback(FMOD_CHANNELCONTROL *channelcontrol, FMOD_CHANNELCONTROL_TYPE controltype, FMOD_CHANNELCONTROL_CALLBACK_TYPE callbacktype, void *commanddata1, void *commanddata2)
+{
+    if(controltype == FMOD_CHANNELCONTROL_CHANNEL){
+        if(callbacktype == FMOD_CHANNELCONTROL_CALLBACK_END) {
+             UE_LOG(LogTemp, Warning, TEXT("Song playing finished............"));
+
+
+             UFmodAudioManager::SongPlayEndEvt("this is song name");
+        }
+    }
+
+    return FMOD_OK;
+}
+
 void SoundManagerFmod::playSnd()
 {
     mSystem->playSound(mSound , 0 , false, &mChannel );
+
+
+   FMOD_RESULT rsl =  mChannel->setMode(FMOD_LOOP_OFF);
+
+   if(rsl == FMOD_RESULT::FMOD_OK){
+       mChannel->setCallback(PlayingChannelCallback);
+   }
 
     mChannel->getFrequency(&mSampleingFreq);
     mFFTHistoryMaxSize = mSampleingFreq / winRectSz;

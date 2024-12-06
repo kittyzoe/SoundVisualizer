@@ -8,8 +8,25 @@
 #include <Misc/FileHelper.h>
 
 
+FSongPlayFinished UFmodAudioManager::TootSongPlayEndDelegate;
+
+
 UFmodAudioManager::UFmodAudioManager()
 {
+
+
+#if 0
+    TootSongPlayEndDelegate.AddLambda([ ](const FString& txt){  // this is a method
+        UE_LOG(LogTemp, Warning, TEXT("TXT is : %s") , *txt);
+        thizClz->SongPlayEnd(txt);
+
+    });
+#else
+    TootSongPlayEndDelegate.AddUniqueDynamic(this, &UFmodAudioManager::SongPlayEnd);
+
+
+#endif
+
 
 }
 
@@ -75,21 +92,21 @@ void UFmodAudioManager::UpdFmodSystem()
     mSoundManager->updFFTData();
 }
 
-int32 UFmodAudioManager::playSong()
+int32 UFmodAudioManager::playSong(const FString &Pathname)
 {
-    FString songsPath = FPaths::ProjectContentDir() + "RawSongs/";
+   // FString songsPath = Pathname ;// FPaths::ProjectContentDir() + "RawSongs/";
 
     //currSongName = "xiaosan.wav";
     //currSongName = "hoidaysale.mp3";
-     currSongName = "A Drop A Day - Fairy Dust.wav";
+    // currSongName = "A Drop A Day - Fairy Dust.wav";
 
-    FString songFile(songsPath + currSongName);
+   // FString songFile(songsPath + currSongName);
 
     uint8 *songData;
     unsigned int songDatLen = 0;
 
     TArray<uint8> rawSongMemData;
-    FFileHelper::LoadFileToArray(rawSongMemData, *songFile);
+    FFileHelper::LoadFileToArray(rawSongMemData, *Pathname);
 
     songData = rawSongMemData.GetData();
     songDatLen = rawSongMemData.Num() * sizeof(uint8);
@@ -101,15 +118,27 @@ int32 UFmodAudioManager::playSong()
 
     mSoundManager->playSnd();
 
+
+
     return 0;
 }
 
 void UFmodAudioManager::PauseSong(bool isPause)
 {
     mSoundManager->pauseSnd(isPause);
+
+
 }
 
 const FString &UFmodAudioManager::GetSongName() const
 {
     return currSongName;
+}
+
+void UFmodAudioManager::SongPlayEndEvt(const FString &SongName) // this is static func
+{
+
+      TootSongPlayEndDelegate.Broadcast(SongName);
+
+
 }
