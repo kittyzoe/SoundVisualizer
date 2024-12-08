@@ -95,15 +95,22 @@ int SoundManagerFmod::loadSndFromMemory(char *memPtr, unsigned int memSz)
     return rsl;
 }
 
+void SoundManagerFmod::keepMusicPathname(std::string sndPathname)
+{
+   // currMusicPathname
+    std::vector<char> tmpStr{ begin(sndPathname) , end(sndPathname)};
+    currMusicPathname = tmpStr.data();
+}
+
 
 static FMOD_RESULT F_CALLBACK PlayingChannelCallback(FMOD_CHANNELCONTROL *channelcontrol, FMOD_CHANNELCONTROL_TYPE controltype, FMOD_CHANNELCONTROL_CALLBACK_TYPE callbacktype, void *commanddata1, void *commanddata2)
 {
     if(controltype == FMOD_CHANNELCONTROL_CHANNEL){
         if(callbacktype == FMOD_CHANNELCONTROL_CALLBACK_END) {
-             UE_LOG(LogTemp, Warning, TEXT("Song playing finished............"));
 
+         //  UE_LOG(LogTemp, Warning, TEXT("Song playing finished............ ") );
 
-             UFmodAudioManager::SongPlayEndEvt("this is song name");
+             UFmodAudioManager::SongPlayEndEvt();
         }
     }
 
@@ -112,7 +119,11 @@ static FMOD_RESULT F_CALLBACK PlayingChannelCallback(FMOD_CHANNELCONTROL *channe
 
 void SoundManagerFmod::playSnd()
 {
-    mSystem->playSound(mSound , 0 , false, &mChannel );
+     mSystem->playSound(mSound , 0 , false, &mChannel );
+
+    //unsigned int songLen ;
+    // mSound->getLength(&songLen, FMOD_TIMEUNIT_MS); // *MUST * Call playSound() before getLenght()
+    //UE_LOG(LogTemp, Warning, TEXT("Song Len:  %ld") ,  songLen);
 
 
    FMOD_RESULT rsl =  mChannel->setMode(FMOD_LOOP_OFF);
@@ -127,6 +138,16 @@ void SoundManagerFmod::playSnd()
     mChannel->addDSP(0, mDsp);
     mDsp->setActive(true);
 
+}
+
+void SoundManagerFmod::stopSnd()
+{
+    bool isPlaying;
+    mChannel->isPlaying(&isPlaying);
+    if(isPlaying)
+    {
+        mChannel->stop();
+    }
 }
 
 void SoundManagerFmod::pauseSnd(bool isPause)
@@ -273,6 +294,21 @@ void SoundManagerFmod::updFFTData()
 {
     // UE_LOG(LogTemp, Warning, TEXT("Nextloop here.........."));
     mSystem->update();
+}
+
+unsigned int SoundManagerFmod::fetchPlayerCurrTimePos()
+{
+    unsigned int pos;
+    mChannel->getPosition(&pos, FMOD_TIMEUNIT_MS);
+    return pos;
+}
+
+unsigned int SoundManagerFmod::fetchPlayerMediaDuration()
+{
+     unsigned int songLen ;
+     mSound->getLength(&songLen, FMOD_TIMEUNIT_MS);
+
+     return songLen;
 }
 
 void SoundManagerFmod::initializeBeatDetector()

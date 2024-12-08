@@ -6,14 +6,14 @@
 
 #include <Misc/Paths.h>
 #include <Misc/FileHelper.h>
-
+#include <string>
 
 FSongPlayFinished UFmodAudioManager::TootSongPlayEndDelegate;
 
-
 UFmodAudioManager::UFmodAudioManager()
+    : mCurrSongName(""),
+      mOldSongName("")
 {
-
 
 #if 0
     TootSongPlayEndDelegate.AddLambda([ ](const FString& txt){  // this is a method
@@ -22,7 +22,9 @@ UFmodAudioManager::UFmodAudioManager()
 
     });
 #else
-    TootSongPlayEndDelegate.AddUniqueDynamic(this, &UFmodAudioManager::SongPlayEnd);
+
+     TootSongPlayEndDelegate.Clear();
+    TootSongPlayEndDelegate.AddUniqueDynamic(this, &UFmodAudioManager::SongPlayEndFMod);
 
 
 #endif
@@ -92,7 +94,7 @@ void UFmodAudioManager::UpdFmodSystem()
     mSoundManager->updFFTData();
 }
 
-int32 UFmodAudioManager::playSong(const FString &Pathname)
+int32 UFmodAudioManager::PlaySong(const FString &Pathname)
 {
    // FString songsPath = Pathname ;// FPaths::ProjectContentDir() + "RawSongs/";
 
@@ -116,29 +118,53 @@ int32 UFmodAudioManager::playSong(const FString &Pathname)
         return rsl;
     }
 
+  //  wcscmp(  (wchar_t*)  mCurrSongName.Data.AllocatorInstance.Data , L"" ) == 0;
+
     mSoundManager->playSnd();
+    mCurrSongName = Pathname;
 
+#if 0
+    std::string tmpPn = TCHAR_TO_UTF8(*Pathname);
 
+    std::vector<char> tmpStr ( tmpPn.begin(),  tmpPn.end());  // copy, has 2 strings in memory
+    tmpStr.push_back('\0');
+
+    oldSongName = FString( UTF8_TO_TCHAR( tmpStr.data() ) );
+#endif
 
     return 0;
+}
+
+void UFmodAudioManager::StopSong(const FString &Pathname)
+{
+     mSoundManager->stopSnd();
 }
 
 void UFmodAudioManager::PauseSong(bool isPause)
 {
     mSoundManager->pauseSnd(isPause);
-
-
 }
 
-const FString &UFmodAudioManager::GetSongName() const
+void UFmodAudioManager::SongPlayEndFMod()
 {
-    return currSongName;
+    unsigned int timePos = mSoundManager->fetchPlayerCurrTimePos();
+    unsigned int duration = mSoundManager->fetchPlayerMediaDuration();
+
+    if(timePos / 10 == duration / 10){
+        //UE_LOG(LogTemp, Warning, TEXT("old song: %s") , *mOldSongName);
+        // UE_LOG(LogTemp, Warning, TEXT("curr song: %s , pos ms: %ld") , *mCurrSongName , timePos);
+        //  UE_LOG(LogTemp, Warning, TEXT("old song: ..... ..")  );
+
+        SongPlayEnd(mOldSongName);
+    }
 }
 
-void UFmodAudioManager::SongPlayEndEvt(const FString &SongName) // this is static func
+// const FString &UFmodAudioManager::GetSongName() const
+// {
+//     return currSongName;
+// }
+
+void UFmodAudioManager::SongPlayEndEvt() // this is static func
 {
-
-      TootSongPlayEndDelegate.Broadcast(SongName);
-
-
+      TootSongPlayEndDelegate.Broadcast(  );
 }

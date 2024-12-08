@@ -24,5 +24,6 @@ FOR    %%F in (Binaries\Win64\UnrealEditor-*.exe) do del "%%~F"
 FOR /R  Plugins  %%F in (UnrealEditor-*.exe) do del "%%~F"
 
 
+
 echo "Clear compiling templorary files done...."
 if %ERRORLEVEL% NEQ 0   pause

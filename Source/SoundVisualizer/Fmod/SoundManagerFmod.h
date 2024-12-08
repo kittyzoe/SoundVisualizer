@@ -50,8 +50,11 @@ public:
     int initialize();
     int loadSndFromPathname(std::string sndPathname);
     int loadSndFromMemory(char* memPtr, unsigned int memSz);
+    void keepMusicPathname(std::string sndPathname);
     void playSnd();
+    void stopSnd();
     void pauseSnd(bool isPause = false);
+
 
     //
     int initializeLinerSpectrum(int maxBands);
@@ -59,6 +62,9 @@ public:
     void fetchLinerSpectrum(float* data);
     void fetchLogSpectrum(float* data);
     void updFFTData();
+    unsigned int fetchPlayerCurrTimePos();
+    unsigned int fetchPlayerMediaDuration();
+
     //
     void initializeBeatDetector();
     void getBeat(float* spectrum, float* averageSpecturm , bool& isBass , bool& isLowM);
@@ -92,6 +98,10 @@ private:
     FFTHistoryContainer mFFTHistory_log;
     FFTHistoryContainer mFFTHistory_beatDetector;
 
+
+    //
+    //std::vector<char> currMusicPathname;
+    std::string currMusicPathname;
 
 };
 
