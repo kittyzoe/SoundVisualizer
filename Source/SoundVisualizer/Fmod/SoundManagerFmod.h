@@ -64,6 +64,7 @@ public:
     void updFFTData();
     unsigned int fetchPlayerCurrTimePos();
     unsigned int fetchPlayerMediaDuration();
+    int fetchPlayerMediaDurationOnly(std::string pathname);
 
     //
     void initializeBeatDetector();

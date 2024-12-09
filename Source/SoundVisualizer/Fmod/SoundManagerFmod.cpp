@@ -311,6 +311,35 @@ unsigned int SoundManagerFmod::fetchPlayerMediaDuration()
      return songLen;
 }
 
+ int SoundManagerFmod::fetchPlayerMediaDurationOnly(std::string pathname)
+{
+
+      UE_LOG(LogTemp, Warning, TEXT("fetchPlayerMediaDurationOnly  ..........")  );
+
+    FMOD::Sound* tmpSound = nullptr;
+    FMOD_RESULT rsl = mSystem->createSound(pathname.c_str(), FMOD_LOOP_NORMAL , 0, &tmpSound );
+    if(rsl != FMOD_RESULT::FMOD_OK){
+        return -1;  // Bad media file
+    }
+
+    FMOD::Channel* tmpCh= nullptr;
+
+    rsl = mSystem->playSound(tmpSound , 0 , true , &tmpCh);
+
+    if(rsl != FMOD_RESULT::FMOD_OK){
+        return -1;  // Bad media file
+    }
+
+     unsigned int songLen ;
+     tmpSound->getLength(&songLen, FMOD_TIMEUNIT_MS); // *MUST * Call playSound() before getLenght()
+
+     tmpSound->release();
+
+     UE_LOG(LogTemp, Warning, TEXT("songLen : %ld") , songLen);
+
+    return songLen;
+}
+
 void SoundManagerFmod::initializeBeatDetector()
 {
     int bandSz = mSampleingFreq / winRectSz;

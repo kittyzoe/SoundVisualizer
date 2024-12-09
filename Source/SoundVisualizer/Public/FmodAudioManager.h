@@ -50,6 +50,11 @@ class SOUNDVISUALIZER_API UFmodAudioManager : public UObject
     void FecthLogSpectrum(TArray<float>& freqValues , const int32 bars);
     UFUNCTION(BlueprintCallable, Category = TOOT)
     void FecthBeat(TArray<float>& freqValues , TArray<float>& freqAverageValues , bool& isBoss , bool& isLowM);
+    //
+    UFUNCTION(BlueprintCallable, Category = TOOT)
+    int32 FetchMediaDuration(const FString& Pathname);
+
+
 
     UFUNCTION(BlueprintCallable, Category = TOOT)
     void UpdFmodSystem();

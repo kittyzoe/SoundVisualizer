@@ -89,6 +89,11 @@ void UFmodAudioManager::FecthBeat(TArray<float> &freqValues, TArray<float> &freq
     mSoundManager->getBeat(freqValues.GetData(), freqAverageValues.GetData(), isBoss , isLowM);
 }
 
+int32 UFmodAudioManager::FetchMediaDuration(const FString &Pathname)
+{
+    return mSoundManager->fetchPlayerMediaDurationOnly(TCHAR_TO_UTF8(*Pathname));
+}
+
 void UFmodAudioManager::UpdFmodSystem()
 {
     mSoundManager->updFFTData();
